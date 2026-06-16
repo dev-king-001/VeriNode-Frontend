@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Providers } from "@/src/components/providers/Providers";
 import "./globals.css";
+import { Providers } from "@/src/components/providers/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,9 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VeriNode — Decentralized Savings Circles",
-  description:
-    "Dashboard for the VeriNode ROSCA protocol on Stellar Soroban",
+  title: "VeriNode",
+  description: "VeriNode — decentralized savings circles (ROSCA) protocol on Stellar Soroban",
 };
 
 export default function RootLayout({
