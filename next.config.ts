@@ -28,7 +28,8 @@ let nextConfig: NextConfig = {
 };
 
 try {
-  const withPWA = require("next-pwa");
+  // @ts-expect-error - next-pwa is optional, caught at runtime
+  const { default: withPWA } = await import("next-pwa");
   nextConfig = withPWA({
     dest: "public",
     runtimeCaching: [

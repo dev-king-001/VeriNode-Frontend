@@ -15,9 +15,12 @@ export function usePwaInstall() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null)
   const [showInstallButton, setShowInstallButton] = useState(false)
-  const sessionStartRef = useRef(Date.now())
+  const sessionStartRef = useRef<number | null>(null)
 
   useEffect(() => {
+    if (sessionStartRef.current === null) {
+      sessionStartRef.current = Date.now()
+    }
     const visits = Number(sessionStorage.getItem(PAGE_VISIT_KEY) || "0") + 1
     sessionStorage.setItem(PAGE_VISIT_KEY, String(visits))
 
@@ -27,7 +30,7 @@ export function usePwaInstall() {
       setDeferredPrompt(promptEvent)
 
       const visits = Number(sessionStorage.getItem(PAGE_VISIT_KEY) || "0")
-      const elapsed = Date.now() - sessionStartRef.current
+      const elapsed = Date.now() - (sessionStartRef.current ?? Date.now())
       if (visits >= MIN_VISITS || elapsed >= MIN_ENGAGEMENT_MS) {
         setShowInstallButton(true)
       }

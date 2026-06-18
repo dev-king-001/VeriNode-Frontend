@@ -3,6 +3,7 @@
 import React, {
   createContext,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -16,6 +17,8 @@ interface WalletContextValue {
   activeAccount: WalletAccount | null;
   isConnected: boolean;
   pendingAccountSwitch: boolean;
+  providers: Record<string, { isConnected: () => boolean }>;
+  walletType: WalletProviderType | null;
   connect: () => Promise<void>;
   disconnect: () => void;
 }
@@ -24,9 +27,17 @@ export const WalletContext = createContext<WalletContextValue>({
   activeAccount: null,
   isConnected: false,
   pendingAccountSwitch: false,
+  providers: {},
+  walletType: null,
   connect: async () => {},
   disconnect: () => {},
 });
+
+export function useWalletContext() {
+  const context = useContext(WalletContext);
+  if (!context) throw new Error("useWalletContext must be used within a WalletProvider");
+  return context;
+}
 
 interface WalletStore {
   activeAccount: WalletAccount | null;
@@ -199,13 +210,27 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const walletType = detectProvider();
+
+  const providers: Record<string, { isConnected: () => boolean }> = useMemo(() => {
+    if (typeof window === "undefined") return {};
+    return {
+      ...(window.stellarWeb3 ? { freighter: { isConnected: () => true } } : {}),
+      ...(window.lobstr ? { lobstr: { isConnected: () => true } } : {}),
+      ...(window.xbull ? { xbull: { isConnected: () => true } } : {}),
+      ...(window.albedo ? { albedo: { isConnected: () => true } } : {}),
+    };
+  }, []);
+
   const value = useMemo<WalletContextValue>(() => ({
     activeAccount,
     isConnected: store.isConnected,
     pendingAccountSwitch: store.pendingAccountSwitch,
+    providers,
+    walletType,
     connect,
     disconnect,
-  }), [activeAccount, connect, disconnect]);
+  }), [activeAccount, providers, walletType, connect, disconnect]);
 
   return (
     <WalletContext.Provider value={value}>

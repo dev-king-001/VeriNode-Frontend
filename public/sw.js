@@ -11,7 +11,6 @@ const INSTALL_URLS = [
   "/icons/icon-512x512.svg",
 ]
 
-const API_PATTERN = /^https?:\/\/.*\/api\/v1\/(nodes|attestations)\/.*/i
 const ANALYTICS_PATTERN = /^https?:\/\/.*\/api\/v1\/(analytics|metrics|usage)\/.*/i
 const STATIC_PATTERN = /^https?:\/\/.*\/_next\/static\/.*/i
 const FONT_PATTERN = /^https?:\/\/.*\.(woff2?|ttf|otf)(\?.*)?$/i
