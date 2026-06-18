@@ -13,31 +13,24 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { WalletAccount, WalletProviderType } from '@/src/types/wallet';
 import { clearAllCaches } from '@/src/lib/reactQuery';
 
-interface WalletProviders {
-  freighter?: { isConnected: () => boolean }
-  lobstr?: { isConnected: () => boolean }
-  xbull?: { isConnected: () => boolean }
-  albedo?: { isConnected: () => boolean }
-}
-
 interface WalletContextValue {
   activeAccount: WalletAccount | null;
   isConnected: boolean;
   pendingAccountSwitch: boolean;
+  walletType: WalletProviderType | null;
+  providers: Record<string, { isConnected: () => boolean }>;
   connect: () => Promise<void>;
   disconnect: () => void;
-  walletType: WalletProviderType | null;
-  providers: WalletProviders;
 }
 
 export const WalletContext = createContext<WalletContextValue>({
   activeAccount: null,
   isConnected: false,
   pendingAccountSwitch: false,
-  connect: async () => {},
-  disconnect: () => {},
   walletType: null,
   providers: {},
+  connect: async () => {},
+  disconnect: () => {},
 });
 
 interface WalletStore {
@@ -101,15 +94,10 @@ function detectProvider(): WalletProviderType | null {
   return null;
 }
 
-function getWalletProviders(): WalletProviders {
-  if (typeof window === 'undefined') return {};
-  const w = window as unknown as Record<string, unknown>;
-  return {
-    freighter: w.freighterApi ? { isConnected: () => true } : undefined,
-    lobstr: w.lobstr ? { isConnected: () => true } : undefined,
-    xbull: w.xbull ? { isConnected: () => true } : undefined,
-    albedo: w.albedo ? { isConnected: () => true } : undefined,
-  };
+function captureBreadcrumb(previousKey: string | null, newKey: string | null, flushDuration: number, cacheEntriesInvalidated: number) {
+  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
+    console.info('[WalletProvider] account switch:', { previousKey, newKey, flushDuration, cacheEntriesInvalidated });
+  }
 }
 
 export function useWalletContext() {
@@ -118,12 +106,6 @@ export function useWalletContext() {
     throw new Error('useWalletContext must be used within a WalletProvider');
   }
   return context;
-}
-
-function captureBreadcrumb(previousKey: string | null, newKey: string | null, flushDuration: number, cacheEntriesInvalidated: number) {
-  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'development') {
-    console.info('[WalletProvider] account switch:', { previousKey, newKey, flushDuration, cacheEntriesInvalidated });
-  }
 }
 
 export function WalletProvider({ children }: { children: React.ReactNode }) {
@@ -230,18 +212,27 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const walletProviderType = activeAccount?.provider ?? detectProvider()
-  const providers = useMemo(() => getWalletProviders(), [])
+  const walletType = detectProvider();
+
+  const providers: Record<string, { isConnected: () => boolean }> = useMemo(() => {
+    if (typeof window === "undefined") return {};
+    return {
+      ...(window.stellarWeb3 ? { freighter: { isConnected: () => true } } : {}),
+      ...(window.lobstr ? { lobstr: { isConnected: () => true } } : {}),
+      ...(window.xbull ? { xbull: { isConnected: () => true } } : {}),
+      ...(window.albedo ? { albedo: { isConnected: () => true } } : {}),
+    };
+  }, []);
 
   const value = useMemo<WalletContextValue>(() => ({
     activeAccount,
     isConnected: store.isConnected,
     pendingAccountSwitch: store.pendingAccountSwitch,
+    providers,
+    walletType,
     connect,
     disconnect,
-    walletType: walletProviderType,
-    providers,
-  }), [activeAccount, connect, disconnect, walletProviderType, providers]);
+  }), [activeAccount, providers, walletType, connect, disconnect]);
 
   return (
     <WalletContext.Provider value={value}>

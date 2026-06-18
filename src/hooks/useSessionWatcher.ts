@@ -23,7 +23,7 @@ export function useSessionWatcher() {
   const watcherRef = useRef<SessionWatcher | null>(null)
   const graceTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const reconnectTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const sessionStartRef = useRef<number>(Date.now())
+  const sessionStartRef = useRef<number | null>(null)
   const previousRouteRef = useRef<string>("")
   const providersRef = useRef(providers)
   providersRef.current = providers
@@ -48,6 +48,7 @@ export function useSessionWatcher() {
 
   useEffect(() => {
     previousRouteRef.current = window.location.pathname
+    sessionStartRef.current = Date.now()
   }, [])
 
   useEffect(() => {
@@ -74,7 +75,7 @@ export function useSessionWatcher() {
           captureLogoutEvent({
             previousRoute: previousRouteRef.current,
             walletType: wType,
-            sessionDuration: Date.now() - sessionStartRef.current,
+            sessionDuration: Date.now() - (sessionStartRef.current ?? Date.now()),
             pendingTransactionsCount: useStakingStore.getState().pendingTransactions,
           })
           logout()
@@ -120,7 +121,7 @@ export function useSessionWatcher() {
         captureLogoutEvent({
           previousRoute: previousRouteRef.current,
           walletType: walletType ?? "unknown",
-          sessionDuration: Date.now() - sessionStartRef.current,
+          sessionDuration: Date.now() - (sessionStartRef.current ?? Date.now()),
           pendingTransactionsCount: useStakingStore.getState().pendingTransactions,
         })
         logout()
