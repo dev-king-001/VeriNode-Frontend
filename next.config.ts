@@ -28,8 +28,9 @@ let nextConfig: NextConfig = {
 };
 
 try {
-  // @ts-expect-error - next-pwa is optional, caught at runtime
-  const { default: withPWA } = await import("next-pwa");
+  // next-pwa is optional — use manual service worker if not installed
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const withPWA = require("next-pwa");
   nextConfig = withPWA({
     dest: "public",
     runtimeCaching: [
