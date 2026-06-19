@@ -123,7 +123,7 @@ test.describe('Wallet E2E - Transaction Signing', () => {
 
     expect(signResult).toBeTruthy();
     expect(signResult).toHaveProperty('signedTx');
-    expect(signResult.signedTx).toContain('MOCK_SIG_');
+    expect(signResult?.signedTx).toContain('MOCK_SIG_');
   });
 
   test('should sign messages with mock wallet', async ({ page }) => {
@@ -132,7 +132,7 @@ test.describe('Wallet E2E - Transaction Signing', () => {
     const mockMessage = 'Authentication challenge message';
 
     const signResult = await page.evaluate(async (message) => {
-      if (window.stellarWeb3) {
+      if (window.stellarWeb3 && window.stellarWeb3.signMessage) {
         return await window.stellarWeb3.signMessage(message);
       }
       return null;
@@ -140,7 +140,7 @@ test.describe('Wallet E2E - Transaction Signing', () => {
 
     expect(signResult).toBeTruthy();
     expect(signResult).toHaveProperty('signature');
-    expect(signResult.signature).toContain('MOCK_SIG_');
+    expect(signResult?.signature).toContain('MOCK_SIG_');
   });
 
   test('should produce deterministic signatures', async ({ page }) => {
