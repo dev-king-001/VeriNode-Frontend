@@ -3,7 +3,7 @@ import { gasCacheService } from '../services/gasCacheService';
 import { useGasStore } from '../store/gasSlice';
 import { hashOperationParams } from '../utils/operationHasher';
 
-export function useGasEstimate(operation: string, params: any) {
+export function useGasEstimate(operation: string, params: unknown) {
   const [gasEstimate, setGasEstimate] = useState<bigint | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const currentBaseFee = useGasStore((state) => state.currentBaseFee);
